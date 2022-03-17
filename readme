@@ -1,0 +1,29 @@
+Jacob Drew
+CS 4760
+Project Three
+
+Version Control: https://github.com/jdrew00/4760-project2
+
+Description: Program demonstrates IPC through shared memory and bakery algorithm
+
+How to run program:
+./master  [-t ss n] [-h]
+
+ss the maximum time in seconds (default 100 seconds) after which the process should terminate itself if not completed
+n number of slave processes to execute
+If n is over 18 it will be set to 18 for safety
+
+The ss arg is not optional. It must be ran with
+./master -t ss n
+with ss and n being supplied.
+
+I suggest testing it with 
+./master -t 1000 6
+
+The program takes several minutes. Testing it with this small number of proccesses shows the bakery algorithm working properly.
+
+Running this command in the shell will remove the log files
+find ./ -name "logfile.*" | xargs rm -r
+
+Running this command in the shell will remove ctest:
+rm ctest
