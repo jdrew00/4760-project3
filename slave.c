@@ -32,7 +32,33 @@ struct sembuf v = {0, +1, SEM_UNDO};
 
 key_t key;
 int semid;
-union semun arg;
+union semun mySemaphore;
+int childProc;
+
+pid_t *children;
+
+void handle_sigterm(int signum, siginfo_t *info, void *ptr)
+{
+    // detaching and deleting shared memory
+    /* remove it: */
+    // if (semctl(semid, 0, IPC_RMID, mySemaphore) == -1)
+    // {
+    //     perror("semctl");
+    //     exit(1);
+    // }
+
+    fprintf(stderr, "Process #%i was terminated by master\n", childProc);
+    exit(0);
+}
+
+void catch_sigterm()
+{
+    static struct sigaction _sigact;
+    memset(&_sigact, 0, sizeof(_sigact));
+    _sigact.sa_sigaction = handle_sigterm;
+    _sigact.sa_flags = SA_SIGINFO;
+    sigaction(SIGTERM, &_sigact, NULL);
+}
 
 int main(int argc, char *argv[])
 {
@@ -67,13 +93,14 @@ int main(int argc, char *argv[])
     FILE *cTestStream;
     cTestStream = fopen("ctest", "a");
 
-    // pid_t parent;
-    // pid_t child;
-    // parent = getppid();
-    // child = getpid();
+    pid_t parent;
+    pid_t child;
+    parent = getppid();
+    child = getpid();
+    childProc = (int)(child - parent);
 
-    // catch_sigterm();
-    // signal(SIGINT, SIG_IGN);
+    catch_sigterm();
+    signal(SIGINT, SIG_IGN);
 
     int i;
     // child process loops five times

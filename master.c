@@ -14,6 +14,7 @@ Master.c
 #include <sys/ipc.h>
 #include <sys/sem.h>
 #include <sys/wait.h>
+#include <string.h>
 
 union semun
 {
@@ -34,6 +35,91 @@ pid_t *children;
 int n;
 // int shmid;
 // struct shmseg *shmp;
+
+void handle_sigalrm(int signum, siginfo_t *info, void *ptr)
+{
+    // prevents multiple interrupts
+    signal(SIGINT, SIG_IGN);
+
+    fprintf(stderr, "Master ran out of time\n");
+
+    /* remove it: */
+    if (semctl(semid, 0, IPC_RMID, mySemaphore) == -1)
+    {
+        perror("semctl");
+        exit(1);
+    }
+
+    // creating tmp_children to replace children
+    // this way children can be freed before SIGTERM
+    pid_t tmp_children[n];
+    int i;
+    for (i = 0; i < n; i++)
+    {
+        tmp_children[i] = children[i];
+    }
+
+    // freeing allocated memory
+    free(children);
+
+    // terminate child processes
+    for (i = 0; i < n; i++)
+    {
+        kill(tmp_children[i], SIGTERM);
+    }
+}
+
+void handle_sigint(int signum, siginfo_t *info, void *ptr)
+{
+    // prevents multiple interrupts
+    signal(SIGINT, SIG_IGN);
+    signal(SIGALRM, SIG_IGN);
+
+    fprintf(stderr, " interrupt was caught by master\n");
+
+    /* remove it: */
+    if (semctl(semid, 0, IPC_RMID, mySemaphore) == -1)
+    {
+        perror("semctl");
+        exit(1);
+    }
+
+    // creating tmp_children to replace children
+    // this way children can be freed before SIGTERM
+    pid_t tmp_children[n];
+    int i;
+    for (i = 0; i < n; i++)
+    {
+        tmp_children[i] = children[i];
+    }
+
+    // freeing allocated memory
+    free(children);
+
+    // terminate child processes
+    for (i = 0; i < n; i++)
+    {
+        kill(tmp_children[i], SIGTERM);
+    }
+}
+
+void catch_sigalrm()
+{
+    static struct sigaction _sigact;
+    memset(&_sigact, 0, sizeof(_sigact));
+    _sigact.sa_sigaction = handle_sigalrm;
+    _sigact.sa_flags = SA_SIGINFO;
+    sigaction(SIGALRM, &_sigact, NULL);
+}
+
+void catch_sigint()
+{
+    static struct sigaction _sigact;
+    memset(&_sigact, 0, sizeof(_sigact));
+    _sigact.sa_sigaction = handle_sigint;
+    _sigact.sa_flags = SA_SIGINFO;
+    sigaction(SIGINT, &_sigact, NULL);
+}
 
 int main(int argc, char *argv[])
 {
@@ -112,8 +198,8 @@ int main(int argc, char *argv[])
     }
 
     // catch sigs
-    // catch_sigint();
-    // catch_sigalrm();
+    catch_sigint();
+    catch_sigalrm();
     alarm(ss); // ss from command args
 
     // initializing pids
