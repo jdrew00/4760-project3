@@ -39,14 +39,6 @@ pid_t *children;
 
 void handle_sigterm(int signum, siginfo_t *info, void *ptr)
 {
-    // detaching and deleting shared memory
-    /* remove it: */
-    // if (semctl(semid, 0, IPC_RMID, mySemaphore) == -1)
-    // {
-    //     perror("semctl");
-    //     exit(1);
-    // }
-
     fprintf(stderr, "Process #%i was terminated by master\n", childProc);
     exit(0);
 }

@@ -33,8 +33,6 @@ union semun mySemaphore;
 
 pid_t *children;
 int n;
-// int shmid;
-// struct shmseg *shmp;
 
 void handle_sigalrm(int signum, siginfo_t *info, void *ptr)
 {

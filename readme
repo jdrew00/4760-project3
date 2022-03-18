@@ -2,9 +2,9 @@ Jacob Drew
 CS 4760
 Project Three
 
-Version Control: https://github.com/jdrew00/4760-project2
+Version Control: https://github.com/jdrew00/4760-project3
 
-Description: Program demonstrates IPC through shared memory and bakery algorithm
+Description: Program demonstrates IPC through shared memory and Semaphores
 
 How to run program:
 ./master  [-t ss n] [-h]
